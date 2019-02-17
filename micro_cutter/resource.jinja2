@@ -1,0 +1,7 @@
+from flask_restplus import Namespace, Resource
+
+api = Namespace('{{name}}')
+
+@api.route('/')
+class {{ name }}(Resource):
+    pass

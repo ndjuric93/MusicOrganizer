@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+package micromusic;
+
+message ServiceLocation {
+	string name = 1;
+	string address = 2;
+    repeated string routes = 3;
+}

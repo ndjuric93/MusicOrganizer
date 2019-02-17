@@ -1,0 +1,9 @@
+microservices:
+    records:
+        routes: [artists, albums/**, tracks/**]
+    users:
+        routes: [login, register]
+    player:
+        routes: [player, playlist]
+    track_statistic:
+        routes: [/track/statistics/**]

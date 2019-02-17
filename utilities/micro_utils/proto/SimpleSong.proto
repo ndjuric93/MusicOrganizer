@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+package micromusic;
+
+message SimpleSong {
+	int32 song_id = 1;
+	string name = 2;
+	string author = 3;
+	string genre = 4;
+}

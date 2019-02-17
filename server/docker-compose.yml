@@ -1,0 +1,149 @@
+version: '3'
+
+services:
+    db:
+        image: postgres:alpine
+        volumes:
+        - /var/lib/postgresql/data
+        ports:
+        - 5432:5432
+        environment:
+        - POSTGRES_PASSWORD=microuser
+        - POSTGRES_USER=microuser
+        - POSTGRES_DB=records
+        networks:
+        - micromusic
+    redis:
+        image: redis:5.0.3-alpine
+        ports:
+        - 6379
+        networks:
+        - micromusic
+    zookeeper:
+        container_name: zookeeper
+        image: blacktop/kafka
+        command: zookeeper-server-start.sh config/zookeeper.properties
+        ports:
+        - 2181
+        networks:
+        - micromusic
+    kafka:
+        image: blacktop/kafka
+        ports:
+        - 9092:9092
+        entrypoint: /wait-for-it.sh zookeeper:2181 -s --timeout=10 -- /kafka-entrypoint.sh
+        command: kafka-server-start.sh config/server.properties
+        volumes:
+        - /var/run/docker.sock:/var/run/docker.sock
+        environment:
+        - KAFKA_ADVERTISED_HOST_NAME=kafka
+        - KAFKA_ADVERTISED_PORT=9092
+        - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
+        networks:
+        - micromusic
+        depends_on:
+        - zookeeper
+    gateway:
+        image: micromusic-gateway
+        ports:
+        - 5000:5000
+        depends_on:
+        - kafka
+        environment:
+        - KAFKA_ADDRESS=kafka:9092
+        - SERVER_ADDRESS=0.0.0.0
+        - SERVER_PORT=5000
+        - ZOOKEEPER_ADDRESS=zookeeper:2181
+        networks:
+        - micromusic
+    users:
+        image: micromusic-users
+        environment:
+        - KAFKA_ADDRESS=kafka:9092
+        - SERVER_ADDRESS=0.0.0.0
+        - SERVER_PORT=5001
+        - ZOOKEEPER_ADDRESS=zookeeper:2181
+        - SERVICE_NAME=users
+        - DB_PASSWORD=microuser
+        ports:
+        - 5001
+        depends_on:
+        - gateway
+        - kafka
+        networks:
+        - micromusic
+    records:
+        image: micromusic-records
+        ports:
+        - 5002
+        environment:
+        - KAFKA_ADDRESS=kafka:9092
+        - SERVER_ADDRESS=0.0.0.0
+        - SERVER_PORT=5002
+        - ZOOKEEPER_ADDRESS=zookeeper:2181
+        - SERVICE_NAME=records
+        - MUSIC_ROOT=/music
+        - DB_PASSWORD=microuser
+        depends_on:
+        - gateway
+        - kafka
+        volumes:
+        - /Users/nemanjadjuric/Music/RTJ1:/music
+        networks:
+        - micromusic
+    track_statistics:
+        image: micromusic-track_statistic_aggregation
+        ports:
+        - 5005
+        environment:
+        - KAFKA_ADDRESS=kafka:9092
+        - SERVER_ADDRESS=0.0.0.0
+        - SERVER_PORT=5005
+        - ZOOKEEPER_ADDRESS=zookeeper:2181
+        - SERVICE_NAME=track_statistics
+        depends_on:
+        - gateway
+        - kafka
+        networks:
+        - micromusic
+    player:
+        image: micromusic-player
+        ports:
+        - 5003
+        environment:
+        - KAFKA_ADDRESS=kafka:9092
+        - SERVER_ADDRESS=0.0.0.0
+        - SERVER_PORT=5003
+        - ZOOKEEPER_ADDRESS=zookeeper:2181
+        - SERVICE_NAME=player
+        - REDIS_ADDRESS=redis
+        depends_on:
+        - gateway
+        - kafka
+        volumes:
+        - /Users/nemanjadjuric/Music/RTJ1:/music
+        networks:
+        - micromusic
+    statistics:
+        image: micromusic-statistics
+        ports:
+        - 5004
+        environment:
+        - KAFKA_ADDRESS=kafka:9092
+        - SERVER_ADDRESS=0.0.0.0
+        - SERVER_PORT=5004
+        - ZOOKEEPER_ADDRESS=zookeeper:2181
+        - SERVICE_NAME=statistics
+        - REDIS_ADDRESS=redis
+        - DB_PASSWORD=microuser
+        depends_on:
+        - gateway
+        - kafka
+        networks:
+        - micromusic
+networks:
+  micromusic:
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.17.0.1/16
