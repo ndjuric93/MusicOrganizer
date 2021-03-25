@@ -63,7 +63,7 @@ python-engineio==2.3.2
 python-magic==0.4.15
 python-socketio==2.0.0
 pytz==2018.5
-PyYAML==3.13
+PyYAML==5.4
 redis==3.0.1
 requests==2.19.1
 requests-threads==0.1.1
