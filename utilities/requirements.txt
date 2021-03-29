@@ -51,7 +51,7 @@ protobuf==3.6.1
 psycopg2==2.7.5
 psycopg2-binary==2.7.5
 py==1.7.0
-Pygments==2.2.0
+Pygments==2.7.4
 PyHamcrest==1.9.0
 PyJWT==1.6.4
 pylint==2.1.1
