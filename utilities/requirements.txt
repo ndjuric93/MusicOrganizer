@@ -17,7 +17,7 @@ constantly==15.1.0
 docutils==0.14
 eyeD3==0.8.7
 Flask==1.0.2
-Flask-Cors==3.0.7
+Flask-Cors==3.0.9
 Flask-JWT-Simple==0.0.3
 flask-marshmallow==0.9.0
 flask-restplus==0.11.0
